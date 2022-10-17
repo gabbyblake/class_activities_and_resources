@@ -26,6 +26,10 @@ class BallTracker(Node):
         thread = Thread(target=self.loop_wrapper)
         thread.start()
 
+        
+
+
+
     def process_image(self, msg):
         """ Process image messages from ROS and stash them in an attribute
             called cv_image for subsequent processing """
@@ -38,6 +42,21 @@ class BallTracker(Node):
         cv2.namedWindow('video_window')
         cv2.namedWindow('binary_window')
         cv2.namedWindow('image_info')
+        
+        # create channel configurable sliders
+        cv2.namedWindow('threshold_image')
+        self.blue_lower_bound = 0
+        self.blue_upper_bound = 255
+        self.green_lower_bound = 0
+        self.green_upper_bound = 255
+        self.red_lower_bound = 0
+        self.red_upper_bound = 255
+        cv2.createTrackbar('blue lower bound', 'threshold_image', self.blue_lower_bound, 255, self.set_blue_lower_bound)
+        cv2.createTrackbar('blue upper bound', 'threshold_image', self.blue_lower_bound, 255, self.set_blue_upper_bound)
+        cv2.createTrackbar('green lower bound', 'threshold_image', self.green_lower_bound, 255, self.set_green_lower_bound)
+        cv2.createTrackbar('green upper bound', 'threshold_image', self.green_lower_bound, 255, self.set_green_upper_bound)
+        cv2.createTrackbar('red lower bound', 'threshold_image', self.red_lower_bound, 255, self.set_red_lower_bound)
+        cv2.createTrackbar('red upper bound', 'threshold_image', self.red_lower_bound, 255, self.set_red_upper_bound)
         cv2.setMouseCallback('video_window', self.process_mouse_event)
         while True:
             self.run_loop()
@@ -57,13 +76,39 @@ class BallTracker(Node):
     def run_loop(self):
         # NOTE: only do cv2.imshow and cv2.waitKey in this function 
         if not self.cv_image is None:
-            self.binary_image = cv2.inRange(self.cv_image, (128,128,128), (255,255,255))
+            self.binary_image = cv2.inRange(self.cv_image, (self.blue_lower_bound,self.green_lower_bound,self.red_lower_bound), 
+            (self.blue_upper_bound,self.green_upper_bound,self.red_upper_bound))
             print(self.cv_image.shape)
             cv2.imshow('video_window', self.cv_image)
             cv2.imshow('binary_window', self.binary_image)
             if hasattr(self, 'image_info_window'):
                 cv2.imshow('image_info', self.image_info_window)
             cv2.waitKey(5)
+
+    def set_blue_lower_bound(self, val):
+        """ A callback function to handle the OpenCV slider to select the red lower bound """
+
+        self.blue_lower_bound = val
+    def set_blue_upper_bound(self, val):
+        """ A callback function to handle the OpenCV slider to select the red lower bound """
+
+        self.blue_upper_bound = val
+    def set_green_lower_bound(self, val):
+        """ A callback function to handle the OpenCV slider to select the red lower bound """
+
+        self.green_lower_bound = val
+    def set_green_upper_bound(self, val):
+        """ A callback function to handle the OpenCV slider to select the red lower bound """
+
+        self.green_upper_bound = val
+    def set_red_lower_bound(self, val):
+        """ A callback function to handle the OpenCV slider to select the red lower bound """
+
+        self.red_lower_bound = val
+    def set_red_upper_bound(self, val):
+        """ A callback function to handle the OpenCV slider to select the red lower bound """
+
+        self.red_upper_bound = val
 
 if __name__ == '__main__':
     node = BallTracker("/camera/image_raw")
